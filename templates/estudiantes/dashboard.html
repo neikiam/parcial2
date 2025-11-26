@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Alumnos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Mis Alumnos</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{% url 'estudiantes:create' %}" class="btn btn-primary">Agregar Alumno</a>
+    </div>
+</div>
+
+{% if alumnos %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Carrera</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alumno in alumnos %}
+                <tr>
+                    <td>{{ alumno.nombre }}</td>
+                    <td>{{ alumno.email }}</td>
+                    <td>{{ alumno.carrera }}</td>
+                    <td>{{ alumno.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'estudiantes:edit' alumno.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{% url 'estudiantes:delete' alumno.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                        <a href="{% url 'estudiantes:send_pdf' alumno.pk %}" class="btn btn-sm btn-success">Enviar PDF</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        No tienes alumnos registrados. <a href="{% url 'estudiantes:create' %}">Agrega el primero</a>
+    </div>
+{% endif %}
+{% endblock %}
