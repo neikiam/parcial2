@@ -7,3 +7,4 @@ pip install -r requirements.txt
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 python manage.py collectstatic --no-input
+python manage.py createsuperuser --noinput --username "${DJANGO_SUPERUSER_USERNAME:-Neikiam}" --email "${DJANGO_SUPERUSER_EMAIL:-neikiam@500gmail.com}" 2>/dev/null || echo "Superuser already exists or creation skipped"
