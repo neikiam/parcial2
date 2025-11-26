@@ -8,7 +8,7 @@
         <h2>Mis Alumnos</h2>
     </div>
     <div class="col text-end">
-        <a href="{% url 'students:create' %}" class="btn btn-primary">Agregar Alumno</a>
+        <a href="{% url 'estudiantes:create' %}" class="btn btn-primary">Agregar Alumno</a>
     </div>
 </div>
 
@@ -32,9 +32,9 @@
                     <td>{{ alumno.carrera }}</td>
                     <td>{{ alumno.fecha_creacion|date:"d/m/Y H:i" }}</td>
                     <td>
-                        <a href="{% url 'students:edit' alumno.pk %}" class="btn btn-sm btn-warning">Editar</a>
-                        <a href="{% url 'students:delete' alumno.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
-                        <a href="{% url 'students:send_pdf' alumno.pk %}" class="btn btn-sm btn-success">Enviar PDF</a>
+                        <a href="{% url 'estudiantes:edit' alumno.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{% url 'estudiantes:delete' alumno.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                        <a href="{% url 'estudiantes:send_pdf' alumno.pk %}" class="btn btn-sm btn-success">Enviar PDF</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -43,7 +43,7 @@
     </div>
 {% else %}
     <div class="alert alert-info">
-        No tienes alumnos registrados. <a href="{% url 'students:create' %}">Agrega el primero</a>
+        No tienes alumnos registrados. <a href="{% url 'estudiantes:create' %}">Agrega el primero</a>
     </div>
 {% endif %}
 {% endblock %}

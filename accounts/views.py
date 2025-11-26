@@ -24,7 +24,7 @@ def register_view(request):
             
             messages.success(request, '¡Registro exitoso! Se ha enviado un correo de bienvenida.')
             login(request, user)
-            return redirect('students:dashboard')
+            return redirect('estudiantes:dashboard')
     else:
         form = RegisterForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -39,7 +39,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Bienvenido {username}!')
-                return redirect('students:dashboard')
+                return redirect('estudiantes:dashboard')
         else:
             messages.error(request, 'Usuario o contraseña incorrectos')
     else:

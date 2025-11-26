@@ -12,7 +12,7 @@ from .forms import AlumnoForm
 @login_required
 def dashboard(request):
     alumnos = Alumno.objects.filter(usuario=request.user)
-    return render(request, 'students/dashboard.html', {'alumnos': alumnos})
+    return render(request, 'estudiantes/dashboard.html', {'alumnos': alumnos})
 
 @login_required
 def create_alumno(request):
@@ -23,10 +23,10 @@ def create_alumno(request):
             alumno.usuario = request.user
             alumno.save()
             messages.success(request, 'Alumno creado exitosamente')
-            return redirect('students:dashboard')
+            return redirect('estudiantes:dashboard')
     else:
         form = AlumnoForm()
-    return render(request, 'students/form.html', {'form': form, 'action': 'Crear'})
+    return render(request, 'estudiantes/form.html', {'form': form, 'action': 'Crear'})
 
 @login_required
 def edit_alumno(request, pk):
@@ -36,10 +36,10 @@ def edit_alumno(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Alumno actualizado exitosamente')
-            return redirect('students:dashboard')
+            return redirect('estudiantes:dashboard')
     else:
         form = AlumnoForm(instance=alumno)
-    return render(request, 'students/form.html', {'form': form, 'action': 'Editar'})
+    return render(request, 'estudiantes/form.html', {'form': form, 'action': 'Editar'})
 
 @login_required
 def delete_alumno(request, pk):
@@ -47,8 +47,8 @@ def delete_alumno(request, pk):
     if request.method == 'POST':
         alumno.delete()
         messages.success(request, 'Alumno eliminado exitosamente')
-        return redirect('students:dashboard')
-    return render(request, 'students/confirm_delete.html', {'alumno': alumno})
+        return redirect('estudiantes:dashboard')
+    return render(request, 'estudiantes/confirm_delete.html', {'alumno': alumno})
 
 @login_required
 def send_pdf(request, pk):
@@ -89,4 +89,4 @@ def send_pdf(request, pk):
     email.send(fail_silently=True)
     
     messages.success(request, f'PDF enviado a {email_destino}')
-    return redirect('students:dashboard')
+    return redirect('estudiantes:dashboard')
