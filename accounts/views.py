@@ -12,17 +12,20 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             
-            subject = '¡Bienvenido a nuestro sistema!'
-            message = f'Hola {user.username},\n\nGracias por registrarte en nuestro sistema de gestión de alumnos.\n\n¡Bienvenido!'
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=True,
-            )
+            try:
+                subject = '¡Bienvenido a nuestro sistema!'
+                message = f'Hola {user.username},\n\nGracias por registrarte en nuestro sistema de gestión de alumnos.\n\n¡Bienvenido!'
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                pass
             
-            messages.success(request, '¡Registro exitoso! Se ha enviado un correo de bienvenida.')
+            messages.success(request, '¡Registro exitoso!')
             login(request, user)
             return redirect('estudiantes:dashboard')
     else:
