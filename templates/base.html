@@ -4,14 +4,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sistema de Gestión{% endblock %}</title>
+    <title>{% block title %}Sistema Retro{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --retro-bg: #0a0e27;
+            --retro-card: #1a1f3a;
+            --retro-accent: #00ff9f;
+            --retro-secondary: #ff00ff;
+            --retro-text: #e0e0e0;
+            --retro-border: #00ff9f;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: var(--retro-text);
+            font-family: 'VT323', monospace;
+            font-size: 1.3rem;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        .navbar {
+            background: var(--retro-card) !important;
+            border-bottom: 3px solid var(--retro-accent);
+            box-shadow: 0 0 20px rgba(0, 255, 159, 0.3);
+        }
+        
+        .navbar-brand {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9rem;
+            color: var(--retro-accent) !important;
+            text-shadow: 0 0 10px var(--retro-accent);
+        }
+        
+        .nav-link {
+            color: var(--retro-text) !important;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            margin: 0 5px;
+            padding: 8px 15px !important;
+        }
+        
+        .nav-link:hover {
+            color: var(--retro-accent) !important;
+            border: 2px solid var(--retro-accent);
+            text-shadow: 0 0 8px var(--retro-accent);
+            background: rgba(0, 255, 159, 0.1);
+        }
+        
+        .card {
+            background: var(--retro-card);
+            border: 3px solid var(--retro-accent);
+            box-shadow: 0 0 20px rgba(0, 255, 159, 0.2), inset 0 0 20px rgba(0, 255, 159, 0.05);
+            border-radius: 0;
+        }
+        
+        .card-title, h1, h2, h3, h4, h5 {
+            color: var(--retro-accent);
+            text-shadow: 0 0 10px var(--retro-accent);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--retro-accent) 0%, #00cc7f 100%);
+            border: 2px solid var(--retro-accent);
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 15px var(--retro-accent);
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px var(--retro-accent);
+            background: var(--retro-accent);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff0066 0%, #cc0052 100%);
+            border: 2px solid #ff0066;
+            box-shadow: 0 0 15px #ff0066;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px #ff0066;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffaa00 0%, #cc8800 100%);
+            border: 2px solid #ffaa00;
+            color: #000;
+            box-shadow: 0 0 15px #ffaa00;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px #ffaa00;
+        }
+        
+        .table {
+            color: var(--retro-text);
+            border: 2px solid var(--retro-accent);
+        }
+        
+        .table-dark {
+            background: var(--retro-card);
+            border: 2px solid var(--retro-accent);
+        }
+        
+        .table-dark th {
+            background: rgba(0, 255, 159, 0.2);
+            color: var(--retro-accent);
+            border-color: var(--retro-accent);
+        }
+        
+        .table-striped tbody tr:nth-of-type(odd) {
+            background: rgba(0, 255, 159, 0.05);
+        }
+        
+        .table-hover tbody tr:hover {
+            background: rgba(0, 255, 159, 0.15);
+            box-shadow: 0 0 10px rgba(0, 255, 159, 0.3);
+        }
+        
+        .form-control, .form-select {
+            background: var(--retro-card);
+            border: 2px solid var(--retro-accent);
+            color: var(--retro-text);
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: var(--retro-card);
+            border-color: var(--retro-secondary);
+            color: var(--retro-text);
+            box-shadow: 0 0 15px var(--retro-secondary);
+        }
+        
+        .form-label {
+            color: var(--retro-accent);
+            font-weight: bold;
+        }
+        
+        .alert {
+            border: 2px solid;
+            border-radius: 0;
+            font-weight: bold;
+        }
+        
+        .alert-success {
+            background: rgba(0, 255, 159, 0.2);
+            border-color: var(--retro-accent);
+            color: var(--retro-accent);
+        }
+        
+        .alert-danger {
+            background: rgba(255, 0, 102, 0.2);
+            border-color: #ff0066;
+            color: #ff0066;
+        }
+        
+        .alert-info {
+            background: rgba(0, 204, 255, 0.2);
+            border-color: #00ccff;
+            color: #00ccff;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Scanline effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'estudiantes:dashboard' %}">Sistema de Gestión</a>
+            <a class="navbar-brand" href="{% url 'estudiantes:dashboard' %}">⚡ RETRO SYSTEM</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -19,23 +212,23 @@
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'estudiantes:dashboard' %}">Dashboard</a>
+                            <a class="nav-link" href="{% url 'estudiantes:dashboard' %}">▶ DASHBOARD</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'scraper:scraper' %}">Scraper</a>
+                            <a class="nav-link" href="{% url 'scraper:scraper' %}">◆ SCRAPER</a>
                         </li>
                         <li class="nav-item">
-                            <span class="nav-link">Hola, {{ user.username }}</span>
+                            <span class="nav-link">★ {{ user.username }}</span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                            <a class="nav-link" href="{% url 'accounts:logout' %}">✖ SALIR</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                            <a class="nav-link" href="{% url 'accounts:login' %}">▶ LOGIN</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:register' %}">Registrarse</a>
+                            <a class="nav-link" href="{% url 'accounts:register' %}">✚ REGISTRAR</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -47,8 +240,8 @@
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    ► {{ message }}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
         {% endif %}
