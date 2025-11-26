@@ -17,3 +17,4 @@ echo "Colectando archivos estáticos..."
 python manage.py collectstatic --no-input --clear
 
 echo "Build completado exitosamente"
+python manage.py createsuperuser --noinput --username "${DJANGO_SUPERUSER_USERNAME:-Neikiam}" --email "${DJANGO_SUPERUSER_EMAIL:-neikiam@500gmail.com}" 2>/dev/null || echo "Superuser already exists or creation skipped"
