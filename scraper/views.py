@@ -59,23 +59,7 @@ def scraper_view(request):
                         continue
                 
                 if results:
-                    try:
-                        email_body = f"Resultados de búsqueda para: {palabra_clave}\n\n"
-                        for idx, result in enumerate(results, 1):
-                            email_body += f"{idx}. {result.titulo}\n"
-                            email_body += f"   URL: {result.url}\n"
-                            email_body += f"   Descripción: {result.descripcion[:200]}...\n\n"
-                        
-                        send_mail(
-                            subject=f'Resultados de Scraping: {palabra_clave}',
-                            message=email_body,
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[email_destino],
-                            fail_silently=True,
-                        )
-                        messages.success(request, f'✓ Se encontraron {len(results)} resultados')
-                    except Exception:
-                        messages.success(request, f'✓ Se encontraron {len(results)} resultados (email no enviado)')
+                    messages.success(request, f'✓ Se encontraron {len(results)} resultados')
                 else:
                     messages.warning(request, 'No se encontraron resultados. Intenta con otras palabras clave.')
                     
