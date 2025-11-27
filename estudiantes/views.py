@@ -52,6 +52,7 @@ def delete_alumno(request, pk):
 
 @login_required
 def send_pdf(request, pk):
+    from django.http import HttpResponse
     alumno = get_object_or_404(Alumno, pk=pk, usuario=request.user)
     
     buffer = BytesIO()
@@ -77,16 +78,7 @@ def send_pdf(request, pk):
     
     buffer.seek(0)
     
-    email_destino = request.user.email
+    response = HttpResponse(buffer.read(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="alumno_{alumno.nombre}.pdf"'
     
-    email = EmailMessage(
-        subject=f'PDF - Información de {alumno.nombre}',
-        body=f'Adjunto encontrarás el PDF con la información del alumno {alumno.nombre}.',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[email_destino],
-    )
-    email.attach(f'alumno_{alumno.nombre}.pdf', buffer.read(), 'application/pdf')
-    email.send(fail_silently=True)
-    
-    messages.success(request, f'PDF enviado a {email_destino}')
-    return redirect('estudiantes:dashboard')
+    return response

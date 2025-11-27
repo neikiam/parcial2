@@ -15,7 +15,6 @@ def scraper_view(request):
         form = ScraperForm(request.POST)
         if form.is_valid():
             palabra_clave = form.cleaned_data['palabra_clave']
-            email_destino = form.cleaned_data['email_destino']
             
             ScraperResult.objects.filter(palabra_clave=palabra_clave).delete()
             

@@ -34,7 +34,7 @@
                     <td>
                         <a href="{% url 'estudiantes:edit' alumno.pk %}" class="btn btn-sm btn-warning">Editar</a>
                         <a href="{% url 'estudiantes:delete' alumno.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
-                        <a href="{% url 'estudiantes:send_pdf' alumno.pk %}" class="btn btn-sm btn-success">Enviar PDF</a>
+                        <a href="{% url 'estudiantes:send_pdf' alumno.pk %}" class="btn btn-sm btn-success">📥 Descargar PDF</a>
                     </td>
                 </tr>
                 {% endfor %}

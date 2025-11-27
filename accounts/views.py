@@ -11,7 +11,20 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            messages.success(request, '¡Registro exitoso!')
+            
+            # Enviar email de bienvenida
+            try:
+                send_mail(
+                    subject='¡Bienvenido a Parcial2!',
+                    message=f'Hola {user.username},\n\nGracias por registrarte en nuestra plataforma.\n\n¡Esperamos que disfrutes de todas las funcionalidades!',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+            except:
+                pass
+            
+            messages.success(request, '¡Registro exitoso! Te hemos enviado un email de bienvenida.')
             login(request, user)
             return redirect('estudiantes:dashboard')
     else:

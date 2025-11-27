@@ -9,10 +9,3 @@ class ScraperForm(forms.Form):
         }),
         label='Palabra Clave'
     )
-    email_destino = forms.EmailField(
-        widget=forms.EmailInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'correo@ejemplo.com'
-        }),
-        label='Email de Destino'
-    )
