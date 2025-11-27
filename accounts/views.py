@@ -16,8 +16,8 @@ def register_view(request):
             user.is_active = False  
             user.save()
             
+            # Crear verificación (genera código automáticamente)
             verification = EmailVerification.objects.create(user=user)
-            verification.generate_code()
             
             try:
                 send_mail(

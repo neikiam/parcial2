@@ -6,13 +6,21 @@ from datetime import timedelta
 
 class EmailVerification(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='email_verification')
-    verification_code = models.CharField(max_length=6)
+    verification_code = models.CharField(max_length=6, blank=True)
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        """Genera código automáticamente al crear"""
+        if not self.verification_code:
+            self.verification_code = str(random.randint(100000, 999999))
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=15)
+        super().save(*args, **kwargs)
     
     def generate_code(self):
-        """Genera un código de 6 dígitos"""
+        """Regenera un código de 6 dígitos"""
         self.verification_code = str(random.randint(100000, 999999))
         self.expires_at = timezone.now() + timedelta(minutes=15)
         self.save()
