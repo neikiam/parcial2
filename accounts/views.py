@@ -19,22 +19,23 @@ def register_view(request):
             # Crear verificación (genera código automáticamente)
             verification = EmailVerification.objects.create(user=user)
             
+            # Intentar enviar email (sin bloquear)
             try:
                 send_mail(
                     subject='¡Verifica tu cuenta en Parcial2!',
                     message=f'Hola {user.username},\n\nTu código de verificación es: {verification.verification_code}\n\nEste código expira en 15 minutos.\n\n¡Bienvenido a nuestra plataforma!',
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],
-                    fail_silently=False,
+                    fail_silently=True,
                 )
-                messages.success(request, f'¡Registro exitoso! Te hemos enviado un código de verificación a {user.email}')
-                request.session['user_id_to_verify'] = user.id
-                return redirect('accounts:verify_email')
-            except Exception as e:
-                # Si falla el envío, mostrar el código en pantalla (solo para desarrollo/pruebas)
-                messages.warning(request, f'No se pudo enviar el email. Tu código es: {verification.verification_code}')
-                request.session['user_id_to_verify'] = user.id
-                return redirect('accounts:verify_email')
+            except:
+                pass
+            
+            # Siempre mostrar el código por seguridad (en caso de que el email falle)
+            messages.success(request, f'¡Registro exitoso! Hemos intentado enviar un email a {user.email}')
+            messages.info(request, f'Tu código de verificación es: {verification.verification_code} (expira en 15 min)')
+            request.session['user_id_to_verify'] = user.id
+            return redirect('accounts:verify_email')
     else:
         form = RegisterForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -116,17 +117,21 @@ def resend_verification_code(request):
         verification = user.email_verification
         verification.generate_code()
         
+        # Intentar enviar email (sin bloquear)
         try:
             send_mail(
                 subject='¡Nuevo código de verificación!',
                 message=f'Hola {user.username},\n\nTu nuevo código de verificación es: {verification.verification_code}\n\nEste código expira en 15 minutos.',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[user.email],
-                fail_silently=False,
+                fail_silently=True,
             )
-            messages.success(request, 'Se ha enviado un nuevo código a tu email')
         except:
-            messages.warning(request, f'No se pudo enviar el email. Tu código es: {verification.verification_code}')
+            pass
+        
+        # Siempre mostrar el código
+        messages.success(request, 'Se ha generado un nuevo código')
+        messages.info(request, f'Tu código es: {verification.verification_code} (expira en 15 min)')
     except EmailVerification.DoesNotExist:
         messages.error(request, 'Error de verificación')
     
