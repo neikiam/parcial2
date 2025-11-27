@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Verificar Email{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg">
+            <div class="card-body p-5">
+                <h2 class="text-center mb-4">🔐 Verificar Email</h2>
+                
+                <div class="alert alert-info text-center">
+                    <strong>{{ user.username }}</strong>, hemos enviado un código de verificación a:<br>
+                    <strong>{{ user.email }}</strong>
+                </div>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="verification_code" class="form-label">Código de Verificación (6 dígitos)</label>
+                        <input 
+                            type="text" 
+                            name="verification_code" 
+                            id="verification_code" 
+                            class="form-control form-control-lg text-center" 
+                            placeholder="000000"
+                            maxlength="6"
+                            pattern="[0-9]{6}"
+                            required
+                            autofocus
+                            style="letter-spacing: 0.5em; font-size: 1.5rem;"
+                        >
+                        <small class="form-text text-muted">Ingresa el código de 6 dígitos que recibiste por email</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                        ✓ Verificar Código
+                    </button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted mb-2">¿No recibiste el código?</p>
+                    <a href="{% url 'accounts:resend_code' %}" class="btn btn-outline-secondary">
+                        📧 Reenviar Código
+                    </a>
+                </div>
+
+                {% if expired %}
+                <div class="alert alert-warning mt-3">
+                    <strong>⏰ Código Expirado</strong><br>
+                    Tu código ha expirado después de 15 minutos. Solicita uno nuevo usando el botón de arriba.
+                </div>
+                {% endif %}
+
+                <div class="mt-4 p-3" style="background-color: rgba(139, 155, 168, 0.1); border-radius: 8px;">
+                    <p class="mb-0 text-center text-muted small">
+                        <strong>💡 Nota:</strong> El código expira en 15 minutos<br>
+                        Si el email no llegó, revisa tu carpeta de spam
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input[type="text"]#verification_code {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
