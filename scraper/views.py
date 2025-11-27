@@ -4,11 +4,8 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 import requests
-from bs4 import BeautifulSoup
 from .forms import ScraperForm
 from .models import ScraperResult
-import time
-import random
 
 @login_required
 def scraper_view(request):
@@ -20,66 +17,64 @@ def scraper_view(request):
             
             ScraperResult.objects.filter(palabra_clave=palabra_clave).delete()
             
-            # Headers más realistas para evitar bloqueo
-            url = f"https://scholar.google.com/scholar?q={palabra_clave}"
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Cache-Control': 'max-age=0',
+            # Usar Semantic Scholar API (sin límites estrictos)
+            url = "https://api.semanticscholar.org/graph/v1/paper/search"
+            params = {
+                'query': palabra_clave,
+                'limit': 10,
+                'fields': 'title,abstract,url,authors,year,citationCount'
             }
             
-            # Delay aleatorio para simular comportamiento humano
-            time.sleep(random.uniform(1, 3))
-            
             try:
-                response = requests.get(url, headers=headers, timeout=15)
-                
-                # Detectar bloqueo de Google
-                if response.status_code == 429 or 'sorry/index' in response.url:
-                    messages.error(request, '⚠️ Google está bloqueando las peticiones temporalmente. Intenta de nuevo en unos minutos.')
-                    form = ScraperForm()
-                    recent_results = ScraperResult.objects.all().order_by('-fecha_scraping')[:10]
-                    return render(request, 'scraper/scraper.html', {'form': form, 'results': results, 'recent_results': recent_results})
-                
+                response = requests.get(url, params=params, timeout=15)
                 response.raise_for_status()
-                soup = BeautifulSoup(response.content, 'html.parser')
+                data = response.json()
                 
-                articulos = soup.find_all('div', class_='gs_ri')
+                papers = data.get('data', [])
                 
-                if not articulos:
-                    articulos = soup.find_all('div', {'data-rp': True})
-                
-                for articulo in articulos[:10]:
+                for paper in papers:
                     try:
-                        titulo_elem = articulo.find('h3', class_='gs_rt') or articulo.find('h3')
-                        if titulo_elem:
-                            link_elem = titulo_elem.find('a')
-                            titulo = titulo_elem.get_text(strip=True).replace('[PDF]', '').replace('[HTML]', '')
-                            url_articulo = link_elem.get('href', 'N/A') if link_elem else 'N/A'
-                            
-                            desc_elem = articulo.find('div', class_='gs_rs') or articulo.find('div', class_='gs_a')
-                            descripcion = desc_elem.get_text(strip=True) if desc_elem else 'Sin descripción disponible'
-                            
-                            if titulo and len(titulo) > 3:
-                                result = ScraperResult.objects.create(
-                                    palabra_clave=palabra_clave,
-                                    titulo=titulo[:300],
-                                    url=url_articulo[:500],
-                                    descripcion=descripcion[:500]
-                                )
-                                results.append(result)
+                        titulo = paper.get('title', 'Sin título')
+                        paper_url = paper.get('url', 'N/A')
+                        
+                        # Construir descripción con información disponible
+                        abstract = paper.get('abstract', '')
+                        authors = paper.get('authors', [])
+                        year = paper.get('year', '')
+                        citations = paper.get('citationCount', 0)
+                        
+                        # Nombres de autores
+                        author_names = [a.get('name', '') for a in authors[:3]]
+                        author_str = ', '.join(author_names)
+                        if len(authors) > 3:
+                            author_str += f' et al.'
+                        
+                        # Descripción combinada
+                        descripcion_parts = []
+                        if author_str:
+                            descripcion_parts.append(f"Autores: {author_str}")
+                        if year:
+                            descripcion_parts.append(f"Año: {year}")
+                        if citations:
+                            descripcion_parts.append(f"Citaciones: {citations}")
+                        if abstract:
+                            descripcion_parts.append(abstract[:300])
+                        
+                        descripcion = ' | '.join(descripcion_parts) if descripcion_parts else 'Sin descripción disponible'
+                        
+                        if titulo and len(titulo) > 3:
+                            result = ScraperResult.objects.create(
+                                palabra_clave=palabra_clave,
+                                titulo=titulo[:300],
+                                url=paper_url[:500] if paper_url else 'N/A',
+                                descripcion=descripcion[:500]
+                            )
+                            results.append(result)
                     except Exception:
                         continue
                 
                 if results:
-                    messages.success(request, f'✓ Se encontraron {len(results)} resultados')
+                    messages.success(request, f'✓ Se encontraron {len(results)} artículos académicos')
                 else:
                     messages.warning(request, 'No se encontraron resultados. Intenta con otras palabras clave.')
                     
