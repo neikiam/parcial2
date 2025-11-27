@@ -71,5 +71,5 @@ def scraper_view(request):
     else:
         form = ScraperForm()
     
-    recent_results = ScraperResult.objects.all().order_by('-fecha_creacion')[:10]
+    recent_results = ScraperResult.objects.all().order_by('-fecha_scraping')[:10]
     return render(request, 'scraper/scraper.html', {'form': form, 'results': results, 'recent_results': recent_results})
