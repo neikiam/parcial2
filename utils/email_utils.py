@@ -32,6 +32,7 @@ def send_email_with_sendgrid(to_email, subject, message, attachment_content=None
         print(f"📧 Intentando enviar email a {to_email}")
         print(f"   From: {settings.DEFAULT_FROM_EMAIL}")
         print(f"   Subject: {subject}")
+        print(f"   API Key (primeros 10 chars): {sendgrid_api_key[:10]}...")
         
         email = Mail(
             from_email=settings.DEFAULT_FROM_EMAIL,
@@ -39,6 +40,13 @@ def send_email_with_sendgrid(to_email, subject, message, attachment_content=None
             subject=subject,
             plain_text_content=message
         )
+        
+        # Desactivar sandbox mode explícitamente
+        email.mail_settings = {
+            'sandbox_mode': {
+                'enable': False
+            }
+        }
         
         # Si hay un archivo adjunto, agregarlo
         if attachment_content and attachment_filename:
@@ -58,7 +66,13 @@ def send_email_with_sendgrid(to_email, subject, message, attachment_content=None
         
         print(f"✅ SendGrid response: Status {response.status_code}")
         print(f"   Response body: {response.body}")
-        print(f"   Response headers: {response.headers}")
+        print(f"   X-Message-Id: {response.headers.get('X-Message-Id', 'No ID')}")
+        
+        # Si hay X-Message-Id, el email fue procesado
+        message_id = response.headers.get('X-Message-Id')
+        if message_id:
+            print(f"   ✅ Email procesado con ID: {message_id}")
+            print(f"   📍 Búscalo en Activity: https://app.sendgrid.com/email_activity?filters=%5B%7B%22selectedIds%22%3A%5B%22{message_id}%22%5D%7D%5D")
         
         # Verificar si el código es 2xx (éxito)
         if 200 <= response.status_code < 300:
