@@ -52,11 +52,13 @@ def scraper_view(request):
                 
                 pages = data.get('query', {}).get('pages', {})
                 
-                if pages:
+                if not pages:
+                    messages.warning(request, 'No se encontraron resultados en Wikipedia.')
+                else:
                     page = list(pages.values())[0]
                     
                     if 'missing' in page:
-                        messages.warning(request, 'No se encontró el artículo en Wikipedia. Intenta con otra palabra.')
+                        messages.warning(request, f'No se encontró el artículo "{palabra_clave}" en Wikipedia. Intenta con otra palabra.')
                     else:
                         extract = page.get('extract', '')
                         
@@ -69,32 +71,34 @@ def scraper_view(request):
                                         'descripcion': sentence.strip()[:500]
                                     })
                         
-                        params_sections = {
-                            'action': 'parse',
-                            'format': 'json',
-                            'page': palabra_clave,
-                            'prop': 'sections',
-                            'redirects': 1
-                        }
-                        
-                        response_sections = requests.get(api_url, params=params_sections, timeout=10)
-                        sections_data = response_sections.json()
-                        
-                        sections = sections_data.get('parse', {}).get('sections', [])
-                        for section in sections[:8]:
-                            titulo = section.get('line', '')
-                            if titulo and titulo not in ['Referencias', 'Enlaces externos', 'Véase también', 'Bibliografía']:
-                                results.append({
-                                    'titulo': titulo,
-                                    'descripcion': 'Sección del artículo'
-                                })
+                        try:
+                            params_sections = {
+                                'action': 'parse',
+                                'format': 'json',
+                                'page': palabra_clave,
+                                'prop': 'sections',
+                                'redirects': 1
+                            }
+                            
+                            response_sections = requests.get(api_url, params=params_sections, timeout=10)
+                            sections_data = response_sections.json()
+                            
+                            if 'parse' in sections_data:
+                                sections = sections_data.get('parse', {}).get('sections', [])
+                                for section in sections[:8]:
+                                    titulo = section.get('line', '')
+                                    if titulo and titulo not in ['Referencias', 'Enlaces externos', 'Véase también', 'Bibliografía']:
+                                        results.append({
+                                            'titulo': titulo,
+                                            'descripcion': 'Sección del artículo'
+                                        })
+                        except:
+                            pass
                         
                         if results:
-                            messages.success(request, f'✓ Se encontraron {len(results)} elementos')
+                            messages.success(request, f'✓ Se encontraron {len(results)} elementos de Wikipedia')
                         else:
-                            messages.warning(request, 'No se encontró contenido. Intenta con otra palabra.')
-                else:
-                    messages.warning(request, 'No se encontraron resultados.')
+                            messages.warning(request, 'El artículo existe pero no se pudo extraer contenido. Intenta con otra palabra.')
                     
             except requests.exceptions.Timeout:
                 messages.error(request, 'Error: Tiempo de espera agotado.')
