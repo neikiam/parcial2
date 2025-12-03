@@ -67,9 +67,9 @@ def send_pdf(request, pk):
     
     p.drawString(100, y_position, f"Nombre: {alumno.nombre}")
     y_position -= 30
-    p.drawString(100, y_position, f"Email: {alumno.email}")
+    p.drawString(100, y_position, f"Apellido: {alumno.apellido}")
     y_position -= 30
-    p.drawString(100, y_position, f"Carrera: {alumno.carrera}")
+    p.drawString(100, y_position, f"Nota: {alumno.nota}")
     y_position -= 30
     p.drawString(100, y_position, f"Fecha de registro: {alumno.fecha_creacion.strftime('%d/%m/%Y %H:%M')}")
     
@@ -77,8 +77,37 @@ def send_pdf(request, pk):
     p.save()
     
     buffer.seek(0)
+    pdf_content = buffer.read()
     
-    response = HttpResponse(buffer.read(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="alumno_{alumno.nombre}.pdf"'
+    try:
+        email = EmailMessage(
+            subject=f'PDF - Alumno {alumno.nombre} {alumno.apellido}',
+            body=f'Adjunto encontrarás el PDF con la información del alumno {alumno.nombre} {alumno.apellido}.',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[request.user.email],
+        )
+        email.attach(f'alumno_{alumno.nombre}_{alumno.apellido}.pdf', pdf_content, 'application/pdf')
+        email.send(fail_silently=True)
+        messages.success(request, f'PDF enviado a {request.user.email}')
+        return redirect('estudiantes:dashboard')
+    except:
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="alumno_{alumno.nombre}_{alumno.apellido}.pdf"'
+        return response
+
+@login_required
+def export_csv(request):
+    import csv
+    from django.http import HttpResponse
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="alumnos.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['nombre', 'apellido', 'nota'])
+    
+    alumnos = Alumno.objects.filter(usuario=request.user)
+    for alumno in alumnos:
+        writer.writerow([alumno.nombre, alumno.apellido, alumno.nota])
     
     return response

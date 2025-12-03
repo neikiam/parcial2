@@ -9,4 +9,5 @@ urlpatterns = [
     path('edit/<int:pk>/', views.edit_alumno, name='edit'),
     path('delete/<int:pk>/', views.delete_alumno, name='delete'),
     path('send-pdf/<int:pk>/', views.send_pdf, name='send_pdf'),
+    path('export-csv/', views.export_csv, name='export_csv'),
 ]
