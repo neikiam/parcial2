@@ -41,13 +41,10 @@ def scraper_view(request):
             }
             
             params = {
-                'action': 'query',
+                'action': 'opensearch',
                 'format': 'json',
-                'titles': palabra_clave,
-                'prop': 'extracts|sections',
-                'exintro': True,
-                'explaintext': True,
-                'redirects': 1
+                'search': palabra_clave,
+                'limit': 10
             }
             
             try:
@@ -55,55 +52,24 @@ def scraper_view(request):
                 response.raise_for_status()
                 data = response.json()
                 
-                pages = data.get('query', {}).get('pages', {})
-                
-                if not pages:
-                    messages.warning(request, 'No se encontraron resultados en Wikipedia.')
-                else:
-                    page = list(pages.values())[0]
+                if len(data) >= 4:
+                    titles = data[1]
+                    descriptions = data[2]
+                    urls = data[3]
                     
-                    if 'missing' in page:
-                        messages.warning(request, f'No se encontró el artículo "{palabra_clave}" en Wikipedia. Intenta con otra palabra.')
+                    for i in range(len(titles)):
+                        results.append({
+                            'titulo': titles[i],
+                            'descripcion': descriptions[i] if descriptions[i] else 'Artículo de Wikipedia',
+                            'url': urls[i]
+                        })
+                    
+                    if results:
+                        messages.success(request, f'✓ Se encontraron {len(results)} artículos relacionados')
                     else:
-                        extract = page.get('extract', '')
-                        
-                        if extract:
-                            sentences = extract.split('.')
-                            for i, sentence in enumerate(sentences[:5], 1):
-                                if len(sentence.strip()) > 20:
-                                    results.append({
-                                        'titulo': f'Párrafo {i}',
-                                        'descripcion': sentence.strip()[:500]
-                                    })
-                        
-                        try:
-                            params_sections = {
-                                'action': 'parse',
-                                'format': 'json',
-                                'page': palabra_clave,
-                                'prop': 'sections',
-                                'redirects': 1
-                            }
-                            
-                            response_sections = requests.get(api_url, params=params_sections, headers=headers, timeout=10)
-                            sections_data = response_sections.json()
-                            
-                            if 'parse' in sections_data:
-                                sections = sections_data.get('parse', {}).get('sections', [])
-                                for section in sections[:8]:
-                                    titulo = section.get('line', '')
-                                    if titulo and titulo not in ['Referencias', 'Enlaces externos', 'Véase también', 'Bibliografía']:
-                                        results.append({
-                                            'titulo': titulo,
-                                            'descripcion': 'Sección del artículo'
-                                        })
-                        except:
-                            pass
-                        
-                        if results:
-                            messages.success(request, f'✓ Se encontraron {len(results)} elementos de Wikipedia')
-                        else:
-                            messages.warning(request, 'El artículo existe pero no se pudo extraer contenido. Intenta con otra palabra.')
+                        messages.warning(request, f'No se encontraron artículos relacionados con "{palabra_clave}".')
+                else:
+                    messages.warning(request, 'No se encontraron resultados en Wikipedia.')
                     
             except requests.exceptions.Timeout:
                 messages.error(request, 'Error: Tiempo de espera agotado.')

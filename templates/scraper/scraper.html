@@ -32,8 +32,9 @@
                         <thead class="table-dark">
                             <tr>
                                 <th style="width: 5%">#</th>
-                                <th style="width: 30%">Título</th>
-                                <th style="width: 65%">Descripción</th>
+                                <th style="width: 35%">Título</th>
+                                <th style="width: 50%">Descripción</th>
+                                <th style="width: 10%">Enlace</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -42,6 +43,11 @@
                                 <td>{{ forloop.counter }}</td>
                                 <td><strong>{{ result.titulo }}</strong></td>
                                 <td>{{ result.descripcion }}</td>
+                                <td>
+                                    {% if result.url %}
+                                    <a href="{{ result.url }}" target="_blank" class="btn btn-sm btn-primary">Ver</a>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
