@@ -34,44 +34,67 @@ def scraper_view(request):
         if form.is_valid():
             palabra_clave = form.cleaned_data['palabra_clave']
             
-            url = f"https://es.wikipedia.org/wiki/{palabra_clave.replace(' ', '_')}"
+            api_url = "https://es.wikipedia.org/w/api.php"
+            params = {
+                'action': 'query',
+                'format': 'json',
+                'titles': palabra_clave,
+                'prop': 'extracts|sections',
+                'exintro': True,
+                'explaintext': True,
+                'redirects': 1
+            }
             
             try:
-                response = requests.get(url, timeout=10)
+                response = requests.get(api_url, params=params, timeout=10)
+                response.raise_for_status()
+                data = response.json()
                 
-                if response.status_code == 404:
-                    messages.warning(request, 'No se encontró el artículo en Wikipedia. Intenta con otra palabra.')
-                else:
-                    response.raise_for_status()
-                    soup = BeautifulSoup(response.content, 'html.parser')
+                pages = data.get('query', {}).get('pages', {})
+                
+                if pages:
+                    page = list(pages.values())[0]
                     
-                    content = soup.find('div', {'id': 'mw-content-text'})
-                    
-                    if content:
-                        paragraphs = content.find_all('p', limit=3)
-                        for p in paragraphs:
-                            text = p.get_text(strip=True)
-                            if len(text) > 50:
+                    if 'missing' in page:
+                        messages.warning(request, 'No se encontró el artículo en Wikipedia. Intenta con otra palabra.')
+                    else:
+                        extract = page.get('extract', '')
+                        
+                        if extract:
+                            sentences = extract.split('.')
+                            for i, sentence in enumerate(sentences[:5], 1):
+                                if len(sentence.strip()) > 20:
+                                    results.append({
+                                        'titulo': f'Párrafo {i}',
+                                        'descripcion': sentence.strip()[:500]
+                                    })
+                        
+                        params_sections = {
+                            'action': 'parse',
+                            'format': 'json',
+                            'page': palabra_clave,
+                            'prop': 'sections',
+                            'redirects': 1
+                        }
+                        
+                        response_sections = requests.get(api_url, params=params_sections, timeout=10)
+                        sections_data = response_sections.json()
+                        
+                        sections = sections_data.get('parse', {}).get('sections', [])
+                        for section in sections[:8]:
+                            titulo = section.get('line', '')
+                            if titulo and titulo not in ['Referencias', 'Enlaces externos', 'Véase también', 'Bibliografía']:
                                 results.append({
-                                    'titulo': 'Párrafo',
-                                    'descripcion': text[:500]
+                                    'titulo': titulo,
+                                    'descripcion': 'Sección del artículo'
                                 })
                         
-                        headings = content.find_all(['h2', 'h3'], limit=10)
-                        for h in headings:
-                            span = h.find('span', {'class': 'mw-headline'})
-                            if span:
-                                titulo = span.get_text(strip=True)
-                                if titulo and titulo not in ['Referencias', 'Enlaces externos', 'Véase también']:
-                                    results.append({
-                                        'titulo': titulo,
-                                        'descripcion': 'Sección del artículo'
-                                    })
-                    
-                    if results:
-                        messages.success(request, f'✓ Se encontraron {len(results)} elementos')
-                    else:
-                        messages.warning(request, 'No se encontró contenido. Intenta con otra palabra.')
+                        if results:
+                            messages.success(request, f'✓ Se encontraron {len(results)} elementos')
+                        else:
+                            messages.warning(request, 'No se encontró contenido. Intenta con otra palabra.')
+                else:
+                    messages.warning(request, 'No se encontraron resultados.')
                     
             except requests.exceptions.Timeout:
                 messages.error(request, 'Error: Tiempo de espera agotado.')
