@@ -25,9 +25,13 @@ def send_email_with_sendgrid(to_email, subject, message, attachment_content=None
     try:
         sendgrid_api_key = settings.SENDGRID_API_KEY
         
-        if not sendgrid_api_key:
-            print("Error: SENDGRID_API_KEY no configurada")
+        if not sendgrid_api_key or sendgrid_api_key == '':
+            print("❌ ERROR: SENDGRID_API_KEY no configurada en las variables de entorno")
             return False
+        
+        print(f"📧 Intentando enviar email a {to_email}")
+        print(f"   From: {settings.DEFAULT_FROM_EMAIL}")
+        print(f"   Subject: {subject}")
         
         email = Mail(
             from_email=settings.DEFAULT_FROM_EMAIL,
@@ -38,6 +42,7 @@ def send_email_with_sendgrid(to_email, subject, message, attachment_content=None
         
         # Si hay un archivo adjunto, agregarlo
         if attachment_content and attachment_filename:
+            print(f"   📎 Adjunto: {attachment_filename}")
             encoded_file = base64.b64encode(attachment_content).decode()
             
             attached_file = Attachment(
@@ -51,9 +56,22 @@ def send_email_with_sendgrid(to_email, subject, message, attachment_content=None
         sg = SendGridAPIClient(sendgrid_api_key)
         response = sg.send(email)
         
-        print(f"Email enviado exitosamente. Status code: {response.status_code}")
-        return True
+        print(f"✅ SendGrid response: Status {response.status_code}")
+        print(f"   Response body: {response.body}")
+        print(f"   Response headers: {response.headers}")
+        
+        # Verificar si el código es 2xx (éxito)
+        if 200 <= response.status_code < 300:
+            print("✅ Email enviado correctamente!")
+            return True
+        else:
+            print(f"⚠️ SendGrid retornó código no exitoso: {response.status_code}")
+            return False
         
     except Exception as e:
-        print(f"Error enviando email con SendGrid: {e}")
+        print(f"❌ ERROR enviando email con SendGrid:")
+        print(f"   Tipo de error: {type(e).__name__}")
+        print(f"   Mensaje: {str(e)}")
+        import traceback
+        print(f"   Traceback: {traceback.format_exc()}")
         return False
