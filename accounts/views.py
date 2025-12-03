@@ -12,16 +12,19 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             
-            # Enviar email de bienvenida usando SendGrid
-            email_sent = send_email_with_sendgrid(
-                to_email=user.email,
-                subject='¡Bienvenido a Parcial2!',
-                message=f'Hola {user.username},\n\nGracias por registrarte en nuestra plataforma.\n\n¡Esperamos que disfrutes de todas las funcionalidades!'
-            )
-            
-            if email_sent:
-                messages.success(request, f'¡Registro exitoso! Se ha enviado un email de bienvenida a {user.email}')
-            else:
+            # Enviar email de bienvenida usando SendGrid (opcional)
+            try:
+                email_sent = send_email_with_sendgrid(
+                    to_email=user.email,
+                    subject='¡Bienvenido a Parcial2!',
+                    message=f'Hola {user.username},\n\nGracias por registrarte en nuestra plataforma.\n\n¡Esperamos que disfrutes de todas las funcionalidades!'
+                )
+                if email_sent:
+                    messages.success(request, f'¡Registro exitoso! Email de bienvenida enviado a {user.email}')
+                else:
+                    messages.success(request, '¡Registro exitoso! Ya puedes iniciar sesión.')
+            except Exception as e:
+                print(f"Error al enviar email: {e}")
                 messages.success(request, '¡Registro exitoso! Ya puedes iniciar sesión.')
             
             login(request, user)
