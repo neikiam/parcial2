@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.mail import EmailMessage
 from django.conf import settings
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from .models import Alumno
 from .forms import AlumnoForm
+from utils.email_utils import send_email_with_sendgrid
 
 @login_required
 def dashboard(request):
@@ -79,20 +79,23 @@ def send_pdf(request, pk):
     buffer.seek(0)
     pdf_content = buffer.read()
     
-    try:
-        email = EmailMessage(
-            subject=f'PDF - Alumno {alumno.nombre} {alumno.apellido}',
-            body=f'Adjunto encontrarás el PDF con la información del alumno {alumno.nombre} {alumno.apellido}.',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[request.user.email],
-        )
-        email.attach(f'alumno_{alumno.nombre}_{alumno.apellido}.pdf', pdf_content, 'application/pdf')
-        email.send(fail_silently=True)
+    # Intentar enviar por email usando SendGrid
+    filename = f'alumno_{alumno.nombre}_{alumno.apellido}.pdf'
+    email_sent = send_email_with_sendgrid(
+        to_email=request.user.email,
+        subject=f'PDF - Alumno {alumno.nombre} {alumno.apellido}',
+        message=f'Adjunto encontrarás el PDF con la información del alumno {alumno.nombre} {alumno.apellido}.',
+        attachment_content=pdf_content,
+        attachment_filename=filename
+    )
+    
+    if email_sent:
         messages.success(request, f'PDF enviado a {request.user.email}')
         return redirect('estudiantes:dashboard')
-    except:
+    else:
+        # Si falla el envío, descargar directamente
         response = HttpResponse(pdf_content, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="alumno_{alumno.nombre}_{alumno.apellido}.pdf"'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
 @login_required

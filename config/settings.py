@@ -108,6 +108,7 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'estudiantes:dashboard'
 LOGOUT_REDIRECT_URL = 'accounts:login'
 
+# Configuración de email tradicional (backup)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
@@ -116,3 +117,6 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@example.com')
 EMAIL_TIMEOUT = 5  # Timeout de 5 segundos para evitar worker timeouts
+
+# Configuración de SendGrid
+SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')

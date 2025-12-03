@@ -2,9 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.conf import settings
 from .forms import RegisterForm
+from utils.email_utils import send_email_with_sendgrid
 
 def register_view(request):
     if request.method == 'POST':
@@ -12,19 +12,12 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             
-            email_sent = False
-            try:
-                result = send_mail(
-                    subject='¡Bienvenido a Parcial2!',
-                    message=f'Hola {user.username},\n\nGracias por registrarte en nuestra plataforma.\n\n¡Esperamos que disfrutes de todas las funcionalidades!',
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[user.email],
-                    fail_silently=False,
-                )
-                if result > 0:
-                    email_sent = True
-            except Exception as e:
-                print(f"Error enviando email: {e}")
+            # Enviar email de bienvenida usando SendGrid
+            email_sent = send_email_with_sendgrid(
+                to_email=user.email,
+                subject='¡Bienvenido a Parcial2!',
+                message=f'Hola {user.username},\n\nGracias por registrarte en nuestra plataforma.\n\n¡Esperamos que disfrutes de todas las funcionalidades!'
+            )
             
             if email_sent:
                 messages.success(request, f'¡Registro exitoso! Se ha enviado un email de bienvenida a {user.email}')
