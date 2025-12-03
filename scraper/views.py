@@ -35,6 +35,11 @@ def scraper_view(request):
             palabra_clave = form.cleaned_data['palabra_clave']
             
             api_url = "https://es.wikipedia.org/w/api.php"
+            
+            headers = {
+                'User-Agent': 'Parcial2App/1.0 (Django Educational Project; neikiam500@gmail.com)'
+            }
+            
             params = {
                 'action': 'query',
                 'format': 'json',
@@ -46,7 +51,7 @@ def scraper_view(request):
             }
             
             try:
-                response = requests.get(api_url, params=params, timeout=10)
+                response = requests.get(api_url, params=params, headers=headers, timeout=10)
                 response.raise_for_status()
                 data = response.json()
                 
@@ -80,7 +85,7 @@ def scraper_view(request):
                                 'redirects': 1
                             }
                             
-                            response_sections = requests.get(api_url, params=params_sections, timeout=10)
+                            response_sections = requests.get(api_url, params=params_sections, headers=headers, timeout=10)
                             sections_data = response_sections.json()
                             
                             if 'parse' in sections_data:
